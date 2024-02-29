@@ -11,23 +11,6 @@ def get_data(stock):
     END = pd.Timestamp.now().strftime('%Y-%m-%d')
     stock_data = yf.download(stock, start=start, end=END)
     
-    #
-    delta = stock_data['Close'].diff()
-    gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
-    loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
-    rs = gain / loss
-    rsi = 100 - (100 / (1 + rs))
-    
-    # Add RSI to the dataframe
-    stock_data['RSI'] = rsi
-    return stock_data
-    import yfinance as yf
-import pandas as pd
-
-def get_stock_data_with_rsi(stock_symbol):
-    # Fetch historical data for the last 5 years
-    stock_data = yf.download(stock_symbol, period="5y")
-    
     # Calculate daily returns
     stock_data['Daily Return'] = stock_data['Close'].pct_change()
     
@@ -47,10 +30,4 @@ def get_stock_data_with_rsi(stock_symbol):
     # Return the final DataFrame
     return stock_data[['Close', 'RSI']]
 
-# Example usage
-stock_symbol = "AAPL" # Apple Inc.
-stock_data_with_rsi = get_stock_data_with_rsi(stock_symbol)
-print(stock_data_with_rsi.tail()) # Print the last few rows to verify
-
 print(get_data('TSM'))
-
