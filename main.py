@@ -2,6 +2,7 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 
+
 tickers = ['PANW', 'SHOP', 'META', 'TSM', 'NET', 'DELL', 'ON', 'CRM', 'SONY', 'CRWD', 'AMAT']
 
 def get_data(stock):
@@ -27,7 +28,10 @@ def get_data(stock):
     stock_data['RS'] = stock_data['Avg Gain'] / stock_data['Avg Loss']
     stock_data['RSI'] = 100 - (100 / (1 + stock_data['RS']))
     
+    # Calculate the 26-day moving average of the closing prices
+    stock_data['26_Day_MA'] = stock_data['Close'].rolling(window=26).mean()
+
     # Return the final DataFrame
-    return stock_data[['Close', 'RSI']]
+    return stock_data[['26_Day_MA', 'RSI']]
 
 print(get_data('TSM'))

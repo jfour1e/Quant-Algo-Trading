@@ -1,5 +1,4 @@
 import yfinance as yf
-import yfinance as yf
 
 def get_historical_option_prices(ticker_symbol, expiration_date=None):
     """
