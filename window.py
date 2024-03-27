@@ -1,9 +1,6 @@
 import yfinance as yf
-import matplotlib.pyplot as plt
 import numpy as np
-import dash
-from dash import dcc, html
-from dash.dependencies import Input, Output
+import plotly.express as px
 
 def fetch_stock_prices(symbol, start_date, end_date):
     try:
@@ -29,17 +26,14 @@ def calculate_fibonacci_levels(high, low):
 
     return retracement_levels
 
-def plot_stock_prices(stock_data, retracement_levels):
+def plot_stock_prices_with_plotly(stock_data, retracement_levels):
     # Plotting the closing prices
-    plt.figure(figsize=(10, 6))
-    plt.plot(stock_data['Close'], label='Close Price', color='blue')
+    fig = px.line(stock_data, x=stock_data.index, y='Close', title='Microsoft Stock Prices with Fibonacci Retracement Levels')
 
-    # Plotting Fibonacci retracement levels
+    # Adding Fibonacci retracement levels as horizontal lines
     for level in retracement_levels:
-        plt.axhline(y=level, linestyle='--', color='orange', label=f'Fib {int(level)}%')
+        fig.add_hline(y=level, line_dash="dash", line_color="orange", annotation_text=f'Fib {int(level)}%', annotation_position="bottom right")
 
-    plt.title('Microsoft Stock Prices with Fibonacci Retracement Levels')
-    plt.xlabel('Date')
-    plt.ylabel('Price (USD)')
-    plt.legend()
-    plt.show()
+    fig.update_xaxes(title_text='Date')
+    fig.update_yaxes(title_text='Price (USD)')
+    fig.show()
