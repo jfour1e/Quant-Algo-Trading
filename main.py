@@ -2,41 +2,39 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 
+#import functions
+from data import get_data
+from window import fetch_stock_prices, calculate_fibonacci_levels, plot_stock_prices
 
-tickers = ['PANW', 'SHOP', 'META', 'TSM', 'NET', 'DELL', 'ON', 'CRM', 'SONY', 'CRWD', 'AMAT']
+if __name__ == "__main__":
+    # Define the stock symbol (Microsoft)
+    stock_symbol = 'MSFT'
 
-import pandas as pd
-import yfinance as yf
+    # Define the time period for which you want historical data
+    start_date = '2024-03-01'
+    end_date = '2024-03-25'
 
-def get_data(stock):
-    #get historical stock data 
-    YEARS = 3
-    start = (pd.Timestamp.now() - pd.DateOffset(years=YEARS)).strftime('%Y-%m-%d')
-    END = pd.Timestamp.now().strftime('%Y-%m-%d')
-    stock_data = yf.download(stock, start=start, end=END)
-    stock_data.reset_index(inplace=True)
+    # Fetch historical stock prices
+    msft_data = fetch_stock_prices(stock_symbol, start_date, end_date)
 
-    # Calculate daily returns
-    stock_data['Daily Return'] = stock_data['Close'].pct_change()
-    
-    
-    # Separate gains and losses
-    stock_data['Gain'] = stock_data['Daily Return'].apply(lambda x: x if x > 0 else 0)
-    stock_data['Loss'] = stock_data['Daily Return'].apply(lambda x: -x if x < 0 else 0)
-    
-    # Calculate average gain and loss
-    window = 14
-    stock_data['Avg Gain'] = stock_data['Gain'].rolling(window=window).mean()
-    stock_data['Avg Loss'] = stock_data['Loss'].rolling(window=window).mean()
-    
-    # Calculate RS and RSI
-    stock_data['RS'] = stock_data['Avg Gain'] / stock_data['Avg Loss']
-    stock_data['RSI'] = 100 - (100 / (1 + stock_data['RS']))
-    
-    # Calculate the 26-day moving average of the closing prices
-    stock_data['MA_26_Day'] = stock_data['Close'].rolling(window=26).mean()
+    # If data is successfully fetched, calculate and plot Fibonacci retracement levels
+    if msft_data is not None:
+        # Calculate Fibonacci retracement levels using the highest and lowest prices
+        high_price = np.max(msft_data['High'])
+        low_price = np.min(msft_data['Low'])
+        retracement_levels = calculate_fibonacci_levels(high_price, low_price)
 
-    # Return the final DataFrame
-    return stock_data[['Date', 'MA_26_Day', 'RSI', 'Volume']]
+        # Plot stock prices with Fibonacci retracement levels
+        plot_stock_prices(msft_data, retracement_levels)
 
-print(get_data('TSM'))
+        
+
+
+#tickers = ['PANW', 'SHOP', 'META', 'TSM', 'NET', 'DELL', 'ON', 'CRM', 'SONY', 'CRWD', 'AMAT']
+#print(get_data('TSM'))
+
+
+
+
+
+
