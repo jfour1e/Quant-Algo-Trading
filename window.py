@@ -2,15 +2,6 @@ import yfinance as yf
 import numpy as np
 import plotly.express as px
 
-def fetch_stock_prices(symbol, start_date, end_date):
-    try:
-        # Fetch historical data from Yahoo Finance
-        stock_data = yf.download(symbol, start=start_date, end=end_date, interval='1h')
-        return stock_data
-    except Exception as e:
-        print(f"Error fetching data: {e}")
-        return None
-
 #test for fetch_stock_prices
 #print(fetch_stock_prices('MSFT','2024-03-18','2024-03-25'))
 
