@@ -1,5 +1,3 @@
-import yfinance as yf
-import pandas as pd
 import numpy as np
 from dash import Dash, dcc, html, Input, Output
 import plotly.express as px
@@ -10,8 +8,7 @@ import schedule
 import time
 
 #import functions
-from data import fetch_rsi, fetch_macd, fetch_stock_prices
-from window import calculate_fibonacci_levels
+from data import *
 
 app = Dash(__name__)
 
@@ -68,12 +65,7 @@ def display_time_series(ticker, _):
         
         # Fetch RSI data
         rsi_data = fetch_rsi(ticker, start_date, end_date)
-        
-        # Fetch MACD data
         macd_data = fetch_macd(ticker, start_date, end_date)
-
-        # Calculate MACD histogram
-        macd_histogram = macd_data['MACD'] - macd_data['MACD Signal']
         
         # Create figure for stock price and Fibonacci levels
         stock_price_fig = px.line(stock_data, x=stock_data.index, y='Close', title=f'{ticker} Stock Prices with Fibonacci Retracement Levels')
@@ -87,7 +79,6 @@ def display_time_series(ticker, _):
         macd_fig = go.Figure()
         macd_fig.add_trace(go.Scatter(x=macd_data.index, y=macd_data['MACD'], mode='lines', name='MACD'))
         macd_fig.add_trace(go.Scatter(x=macd_data.index, y=macd_data['MACD Signal'], mode='lines', name='MACD Signal'))
-        macd_fig.add_trace(go.Bar(x=macd_data.index, y=macd_histogram, name='MACD Histogram', marker_color='rgba(0, 128, 0, 0.5)'))  # Adjust color and opacity
         macd_fig.update_layout(barmode='overlay', title=f'{ticker} MACD', xaxis_title='Date', yaxis_title='MACD')
         macd_fig.update_traces(marker_line_width=1, marker_line_color="black")  # Adjust width and color of bar outlines
 
@@ -125,6 +116,7 @@ def display_time_series(ticker, _):
 
 if __name__ == '__main__':
     app.run_server(debug=True)
+
 
 # def display_time_series(ticker):
 #     start_date = '2024-02-01'

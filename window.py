@@ -1,30 +1,88 @@
-import yfinance as yf
-import numpy as np
-import plotly.express as px
+#signals Library of functions
+import matplotlib.pyplot as plt
 
-#test for fetch_stock_prices
-#print(fetch_stock_prices('MSFT','2024-03-18','2024-03-25'))
+def generate_ema_signals(ema_data):
+    signals = []
+    for i in range(1, len(ema_data)):
+        if ema_data['EMA_5'][i] > ema_data['EMA_8'][i] and ema_data['EMA_5'][i - 1] < ema_data['EMA_8'][i - 1]:
+            signals.append((ema_data.index[i], 'Buy'))
+        elif ema_data['EMA_5'][i] < ema_data['EMA_8'][i] and ema_data['EMA_5'][i - 1] > ema_data['EMA_8'][i - 1]:
+            signals.append((ema_data.index[i], 'Sell'))
+        else:
+            signals.append((ema_data.index[i], ''))
+    return signals
 
-def calculate_fibonacci_levels(high, low):
-    # Calculate Fibonacci retracement levels
-    levels = [0, 23.6, 38.2, 50, 61.8, 78.6, 100]
 
-    # Calculate price range
-    price_range = high - low
+def generate_macd_signals(macd_data):
+    signals = []
+    
+    for i in range(1, len(macd_data)):
+        # MACD-based signals
+        if macd_data['MACD'][i] > macd_data['MACD Signal'][i] and macd_data['MACD'][i-1] < macd_data['MACD Signal'][i-1]:
+            signals.append((macd_data.index[i], 'Buy')) 
+        
+        elif macd_data['MACD'][i] < macd_data['MACD Signal'][i] and macd_data['MACD'][i-1] > macd_data['MACD Signal'][i-1]:
+            signals.append((macd_data.index[i], 'Sell')) 
+        
+        else:
+            signals.append((macd_data.index[i], ''))  # No signal
 
-    # Calculate retracement levels
-    retracement_levels = [high - level / 100.0 * price_range for level in levels]
+    return signals
 
-    return retracement_levels
 
-def plot_stock_prices_with_plotly(stock_data, retracement_levels):
-    # Plotting the closing prices
-    fig = px.line(stock_data, x=stock_data.index, y='Close', title='Microsoft Stock Prices with Fibonacci Retracement Levels')
+def generate_rsi_signals(rsi_data):
+    rsi_signals = []
+    
+    for i in range(1, len(rsi_data)):
+        # RSI-based signals
+        if rsi_data['RSI'][i] < 30:
+            rsi_signals.append((rsi_data.index[i], 'Buy')) 
+        
+        elif rsi_data['RSI'][i] > 70:
+            rsi_signals.append((rsi_data.index[i], 'Sell')) 
+        
+        else:
+            rsi_signals.append((rsi_data.index[i], '')) 
 
-    # Adding Fibonacci retracement levels as horizontal lines
-    for level in retracement_levels:
-        fig.add_hline(y=level, line_dash="dash", line_color="orange", annotation_text=f'Fib {int(level)}%', annotation_position="bottom right")
+    return rsi_signals
 
-    fig.update_xaxes(title_text='Date')
-    fig.update_yaxes(title_text='Price (USD)')
-    fig.show()
+
+def generate_fibonacci_signals(price, fibonacci_levels):
+    closest_level = min(fibonacci_levels, key=lambda x: abs(x - price))
+    entry_level_index = fibonacci_levels.index(closest_level)
+    
+    if entry_level_index < len(fibonacci_levels) - 1:
+        target_level = fibonacci_levels[entry_level_index + 1]
+    else:
+        target_level = None
+    
+    if entry_level_index > 0:
+        stop_loss_level = fibonacci_levels[entry_level_index - 1]
+    else:
+        stop_loss_level = None
+    
+    return closest_level, target_level, stop_loss_level
+
+
+def plot_fibonacci_levels(price, fibonacci_levels, entry_level, target_level, stop_loss_level):
+    plt.figure(figsize=(10, 6))
+    
+    for level in fibonacci_levels:
+        plt.hlines(level, 0, len(fibonacci_levels), color='blue', linestyle='--', label='Fibonacci Levels')
+    
+    # Plot entry, target, and stop loss levels as horizontal lines
+    plt.hlines(entry_level, 0, len(fibonacci_levels), color='green', linestyle='--', label='Entry Level')
+    plt.hlines(target_level, 0, len(fibonacci_levels), color='red', linestyle='--', label='Target Level')
+    plt.hlines(stop_loss_level, 0, len(fibonacci_levels), color='orange', linestyle='--', label='Stop Loss Level')
+    
+    # Plot current price as a horizontal line
+    plt.hlines(price, 0, len(fibonacci_levels), color='gray', linestyle='--', label='Current Price')
+    
+    plt.xlabel('Fibonacci Levels')
+    plt.ylabel('Price')
+    plt.title('Fibonacci Levels with Entry, Target, and Stop Loss')
+    plt.legend()
+    plt.grid(True)
+    
+    plt.show()
+

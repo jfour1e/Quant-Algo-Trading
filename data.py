@@ -1,7 +1,7 @@
 import yfinance as yf
-import pandas as pd
-import numpy as np
 from talib import RSI, MACD
+
+#fetching and calculating indicators 
 
 def fetch_stock_prices(symbol, start_date, end_date):
     try:
@@ -33,33 +33,30 @@ def fetch_macd(ticker, start_date, end_date):
     else:
         return None
 
-# def get_data(stock):
-#     #get historical stock data 
-#     YEARS = 3
-#     start = (pd.Timestamp.now() - pd.DateOffset(years=YEARS)).strftime('%Y-%m-%d')
-#     END = pd.Timestamp.now().strftime('%Y-%m-%d')
-#     stock_data = yf.download(stock, start=start, end=END)
-#     stock_data.reset_index(inplace=True)
+def calculate_emas(ticker, start_date, end_date):
+    prices = fetch_stock_prices(ticker, start_date, end_date)
+    prices['EMA_5'] = prices['Close'].ewm(span=5, min_periods=0, adjust=False).mean()
+    prices['EMA_8'] = prices['Close'].ewm(span=8, min_periods=0, adjust=False).mean()
+    prices['EMA_13'] = prices['Close'].ewm(span=13, min_periods=0, adjust=False).mean()
+    return prices[['EMA_5', 'EMA_8', 'EMA_13']]
 
-#     # Calculate daily returns
-#     stock_data['Daily Return'] = stock_data['Close'].pct_change()
-    
-    
-#     # Separate gains and losses
-#     stock_data['Gain'] = stock_data['Daily Return'].apply(lambda x: x if x > 0 else 0)
-#     stock_data['Loss'] = stock_data['Daily Return'].apply(lambda x: -x if x < 0 else 0)
-    
-#     # Calculate average gain and loss
-#     window = 14
-#     stock_data['Avg Gain'] = stock_data['Gain'].rolling(window=window).mean()
-#     stock_data['Avg Loss'] = stock_data['Loss'].rolling(window=window).mean()
-    
-#     # Calculate RS and RSI
-#     stock_data['RS'] = stock_data['Avg Gain'] / stock_data['Avg Loss']
-#     stock_data['RSI'] = 100 - (100 / (1 + stock_data['RS']))
-    
-#     # Calculate the 26-day moving average of the closing prices
-#     stock_data['MA_26_Day'] = stock_data['Close'].rolling(window=26).mean()
+def calculate_fibonacci_levels(high, low):
+    # Calculate Fibonacci retracement levels
+    levels = [0, 23.6, 38.2, 50, 61.8, 78.6, 100]
 
-#     # Return the final DataFrame
-#     return stock_data[['Date', 'MA_26_Day', 'RSI', 'Volume']]
+    # Calculate price range
+    price_range = high - low
+
+    # Calculate retracement levels
+    retracement_levels = [high - level / 100.0 * price_range for level in levels]
+
+    return retracement_levels
+
+def fetch_volume(ticker, start_date, end_date):
+    # Fetch historical stock data at 15-minute intervals using yfinance
+    stock_data = yf.download(ticker, start=start_date, end=end_date, interval="15m")
+    
+    # Extract volume data from the fetched stock data
+    volume_data = stock_data['Volume']
+    
+    return volume_data
