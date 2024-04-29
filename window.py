@@ -1,67 +1,90 @@
 #signals Library of functions
 import matplotlib.pyplot as plt
+import pandas as pd
+from data import * 
 
-def generate_ema_signals(ema_data):
-    signals = []
-    for i in range(1, len(ema_data)):
-        if ema_data['EMA_5'][i] > ema_data['EMA_8'][i] and ema_data['EMA_5'][i - 1] < ema_data['EMA_8'][i - 1]:
-            signals.append((ema_data.index[i], 'Buy'))
-        elif ema_data['EMA_5'][i] < ema_data['EMA_8'][i] and ema_data['EMA_5'][i - 1] > ema_data['EMA_8'][i - 1]:
-            signals.append((ema_data.index[i], 'Sell'))
-        else:
-            signals.append((ema_data.index[i], ''))
-    return signals
+def generate_ema_signals(data, row):
 
+    last_row = data.iloc[row]
 
-def generate_macd_signals(macd_data):
-    signals = []
+    ema_5_current = pd.Series(last_row['EMA_5'])
+    ema_8_current = pd.Series(last_row['EMA_8'])
+    ema_13_current = pd.Series(last_row['EMA_13'])
+
+    # Get the previous row
+    prev_row = data.iloc[row-1]
+
+    ema_5_prev = pd.Series(prev_row['EMA_5'])
+    ema_8_prev = pd.Series(prev_row['EMA_8'])
+    ema_13_prev = pd.Series(prev_row['EMA_13'])
+
+    buy_conditions_met = ((ema_5_current > ema_8_current) & (ema_5_prev < ema_8_prev) & (ema_8_current > ema_13_current))
+
+    sell_conditions_met = ((ema_5_current < ema_8_current) & (ema_5_prev > ema_8_prev) & (ema_8_current < ema_13_current))
     
-    for i in range(1, len(macd_data)):
-        # MACD-based signals
-        if macd_data['MACD'][i] > macd_data['MACD Signal'][i] and macd_data['MACD'][i-1] < macd_data['MACD Signal'][i-1]:
-            signals.append((macd_data.index[i], 'Buy')) 
-        
-        elif macd_data['MACD'][i] < macd_data['MACD Signal'][i] and macd_data['MACD'][i-1] > macd_data['MACD Signal'][i-1]:
-            signals.append((macd_data.index[i], 'Sell')) 
-        
-        else:
-            signals.append((macd_data.index[i], ''))  # No signal
+    if (buy_conditions_met.all() == True): 
+         return 'Buy'
 
-    return signals
+    elif(sell_conditions_met.all()):
+        return 'Sell'
+    else: 
+        return ' '
 
 
-def generate_rsi_signals(rsi_data):
-    rsi_signals = []
+def generate_macd_signals(data, row):
+    # MACD-based signals
+
+    if data.iloc[row]['MACD'] > data.iloc[row]['MACD Signal'] and data.iloc[row-1]['MACD'] < data.iloc[row-1]['MACD Signal']:
+        return 'Buy'
     
-    for i in range(1, len(rsi_data)):
-        # RSI-based signals
-        if rsi_data['RSI'][i] < 30:
-            rsi_signals.append((rsi_data.index[i], 'Buy')) 
-        
-        elif rsi_data['RSI'][i] > 70:
-            rsi_signals.append((rsi_data.index[i], 'Sell')) 
-        
-        else:
-            rsi_signals.append((rsi_data.index[i], '')) 
-
-    return rsi_signals
-
-
-def generate_fibonacci_signals(price, fibonacci_levels):
-    closest_level = min(fibonacci_levels, key=lambda x: abs(x - price))
-    entry_level_index = fibonacci_levels.index(closest_level)
+    elif data.iloc[row]['MACD'] < data.iloc[row]['MACD Signal'] and data.iloc[row-1]['MACD'] > data.iloc[row-1]['MACD Signal']:
+        return 'Sell'
     
-    if entry_level_index < len(fibonacci_levels) - 1:
-        target_level = fibonacci_levels[entry_level_index + 1]
     else:
-        target_level = None
+        return ''  # No signal
+
+
+def generate_rsi_signals(data, row):
     
-    if entry_level_index > 0:
-        stop_loss_level = fibonacci_levels[entry_level_index - 1]
+    # RSI-based signals
+    if data.iloc[row]['RSI'] < 35:
+        return 'Buy'
+    
+    elif data.iloc[row]['RSI'] > 65:
+        return 'Sell'
+    
     else:
-        stop_loss_level = None
+        return '' 
+
+
+def generate_signals(data, row): 
+    fibonacci_levels = calculate_fibonacci_levels(data, row)
+    #find_positions_fibonacci(row, fibonacci_levels)
+
+    ema_signal = generate_ema_signals(data, row)
+    most_recent_macd_signal = None
+    rsi_signal = generate_rsi_signals(data, row)
+
+    #print(find_positions_fibonacci(data, row, fibonacci_levels))
+
+    for i in range(row, -1, -1):
+        macd_signal = generate_macd_signals(data, i)
+        if macd_signal != '':
+            most_recent_macd_signal = macd_signal
+            break
     
-    return closest_level, target_level, stop_loss_level
+    buy_conditions = ((ema_signal == 'Buy') & (most_recent_macd_signal == 'Buy') | (rsi_signal == 'Buy'))
+    
+    sell_conditions = ((ema_signal == 'Sell') & (most_recent_macd_signal == 'Sell') | (rsi_signal == 'Sell')) 
+
+    if buy_conditions == True: 
+
+        return 'Buy'#, entry_level, stop_loss, target_profit
+
+    elif sell_conditions == True:
+        return 'Sell'
+    else: 
+        return ' '
 
 
 def plot_fibonacci_levels(price, fibonacci_levels, entry_level, target_level, stop_loss_level):
