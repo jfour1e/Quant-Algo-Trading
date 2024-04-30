@@ -18,9 +18,9 @@ def generate_ema_signals(data, row):
     ema_8_prev = pd.Series(prev_row['EMA_8'])
     ema_13_prev = pd.Series(prev_row['EMA_13'])
 
-    buy_conditions_met = ((ema_5_current > ema_8_current) & (ema_5_prev < ema_8_prev) & (ema_8_current > ema_13_current))
+    buy_conditions_met = ((ema_5_current > ema_8_current) & (ema_5_current > ema_13_current))
 
-    sell_conditions_met = ((ema_5_current < ema_8_current) & (ema_5_prev > ema_8_prev) & (ema_8_current < ema_13_current))
+    sell_conditions_met = ((ema_5_current < ema_8_current) & (ema_5_current < ema_13_current))
     
     if (buy_conditions_met.all() == True): 
          return 'Buy'
@@ -58,7 +58,7 @@ def generate_rsi_signals(data, row):
 
 
 def generate_signals(data, row): 
-    fibonacci_levels = calculate_fibonacci_levels(data, row)
+    #fibonacci_levels = calculate_fibonacci_levels(data, row)
     #find_positions_fibonacci(row, fibonacci_levels)
 
     ema_signal = generate_ema_signals(data, row)
@@ -73,9 +73,9 @@ def generate_signals(data, row):
             most_recent_macd_signal = macd_signal
             break
     
-    buy_conditions = ((ema_signal == 'Buy') & (most_recent_macd_signal == 'Buy') | (rsi_signal == 'Buy'))
+    buy_conditions = ((ema_signal == 'Buy') & ((most_recent_macd_signal == 'Buy') | (rsi_signal == 'Buy')))
     
-    sell_conditions = ((ema_signal == 'Sell') & (most_recent_macd_signal == 'Sell') | (rsi_signal == 'Sell')) 
+    sell_conditions = ((ema_signal == 'Sell') & (((most_recent_macd_signal == 'Sell') | (rsi_signal == 'Sell')))) 
 
     if buy_conditions == True: 
 
