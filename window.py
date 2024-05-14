@@ -71,9 +71,9 @@ def generate_signals(data, row):
             most_recent_macd_signal = macd_signal
             break
     
-    buy_conditions = ((ema_signal == 'Buy') & ((most_recent_macd_signal == 'Buy') | (rsi_signal == 'Buy')))
+    buy_conditions = ((ema_signal == 'Buy') & ((most_recent_macd_signal == 'Buy') & (rsi_signal == 'Buy')))
     
-    sell_conditions = ((ema_signal == 'Sell') & (((most_recent_macd_signal == 'Sell') | (rsi_signal == 'Sell')))) 
+    sell_conditions = ((ema_signal == 'Sell') & (((most_recent_macd_signal == 'Sell') & (rsi_signal == 'Sell')))) 
 
     if buy_conditions == True: 
 
