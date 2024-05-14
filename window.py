@@ -1,7 +1,8 @@
 #signals Library of functions
 import matplotlib.pyplot as plt
 import pandas as pd
-from data import * 
+from data import *  
+from datetime import datetime, timedelta
 
 def generate_ema_signals(data, row):
 
@@ -56,14 +57,10 @@ def generate_rsi_signals(data, row):
 
 
 def generate_signals(data, row): 
-    #fibonacci_levels = calculate_fibonacci_levels(data, row)
-    #find_positions_fibonacci(row, fibonacci_levels)
 
     ema_signal = generate_ema_signals(data, row)
     most_recent_macd_signal = None
     rsi_signal = generate_rsi_signals(data, row)
-
-    #print(find_positions_fibonacci(data, row, fibonacci_levels))
 
     for i in range(row, -1, -1):
         macd_signal = generate_macd_signals(data, i)
@@ -71,9 +68,9 @@ def generate_signals(data, row):
             most_recent_macd_signal = macd_signal
             break
     
-    buy_conditions = ((ema_signal == 'Buy') & ((most_recent_macd_signal == 'Buy') | (rsi_signal == 'Buy')))
+    buy_conditions = ((ema_signal == 'Buy') & ((most_recent_macd_signal == 'Buy') & (rsi_signal == 'Buy')))
     
-    sell_conditions = ((ema_signal == 'Sell') & (((most_recent_macd_signal == 'Sell') | (rsi_signal == 'Sell')))) 
+    sell_conditions = ((ema_signal == 'Sell') & (((most_recent_macd_signal == 'Sell') & (rsi_signal == 'Sell')))) 
 
     if buy_conditions == True: 
 
@@ -84,44 +81,8 @@ def generate_signals(data, row):
     else: 
         return ' '
 
-
-def update_stop_loss(current_price, fibonacci_levels):
-    # Find the closest Fibonacci level to the current price
-    closest_fibonacci_level = min(fibonacci_levels, key=lambda x: abs(x - current_price))
-    closest_fibonacci_index = fibonacci_levels.index(closest_fibonacci_level)
-    
-    # Calculate stop loss level
-    if closest_fibonacci_index > 0:
-        stop_loss_level = fibonacci_levels[closest_fibonacci_index - 1]
-        # Check if the current price reaches one higher Fibonacci level than the entry point
-        if current_price >= fibonacci_levels[closest_fibonacci_index]:
-            # If yes, increase the stop loss level to the next highest Fibonacci level
-            stop_loss_level = fibonacci_levels[min(closest_fibonacci_index + 1, len(fibonacci_levels) - 1)]
-    else:
-        stop_loss_level = None  # No Fibonacci level below the current closest level
-    
-    return stop_loss_level
+#
 
 
-def plot_fibonacci_levels(price, fibonacci_levels, entry_level, target_level, stop_loss_level):
-    plt.figure(figsize=(10, 6))
-    
-    for level in fibonacci_levels:
-        plt.hlines(level, 0, len(fibonacci_levels), color='blue', linestyle='--', label='Fibonacci Levels')
-    
-    # Plot entry, target, and stop loss levels as horizontal lines
-    plt.hlines(entry_level, 0, len(fibonacci_levels), color='green', linestyle='--', label='Entry Level')
-    plt.hlines(target_level, 0, len(fibonacci_levels), color='red', linestyle='--', label='Target Level')
-    plt.hlines(stop_loss_level, 0, len(fibonacci_levels), color='orange', linestyle='--', label='Stop Loss Level')
-    
-    # Plot current price as a horizontal line
-    plt.hlines(price, 0, len(fibonacci_levels), color='gray', linestyle='--', label='Current Price')
-    
-    plt.xlabel('Fibonacci Levels')
-    plt.ylabel('Price')
-    plt.title('Fibonacci Levels with Entry, Target, and Stop Loss')
-    plt.legend()
-    plt.grid(True)
-    
-    plt.show()
+
 
