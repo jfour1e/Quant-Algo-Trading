@@ -9,18 +9,16 @@ def generate_ema_signals(data, row):
 
     ema_5_current = pd.Series(last_row['EMA_5'])
     ema_8_current = pd.Series(last_row['EMA_8'])
-    ema_13_current = pd.Series(last_row['EMA_13'])
 
     # Get the previous row
     prev_row = data.iloc[row-1]
 
     ema_5_prev = pd.Series(prev_row['EMA_5'])
     ema_8_prev = pd.Series(prev_row['EMA_8'])
-    ema_13_prev = pd.Series(prev_row['EMA_13'])
 
-    buy_conditions_met = ((ema_5_current > ema_8_current) & (ema_5_current > ema_13_current))
+    buy_conditions_met = (ema_5_current > ema_8_current) & (ema_5_prev < ema_8_prev)
 
-    sell_conditions_met = ((ema_5_current < ema_8_current) & (ema_5_current < ema_13_current))
+    sell_conditions_met = (ema_5_current < ema_8_current) & (ema_5_prev > ema_8_prev)
     
     if (buy_conditions_met.all() == True): 
          return 'Buy'
@@ -47,10 +45,10 @@ def generate_macd_signals(data, row):
 def generate_rsi_signals(data, row):
     
     # RSI-based signals
-    if data.iloc[row]['RSI'] < 35:
+    if data.iloc[row]['RSI'] < 50:
         return 'Buy'
     
-    elif data.iloc[row]['RSI'] > 65:
+    elif data.iloc[row]['RSI'] > 50:
         return 'Sell'
     
     else:
