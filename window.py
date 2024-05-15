@@ -81,8 +81,3 @@ def generate_signals(data, row):
     else: 
         return ' '
 
-#
-
-
-
-
