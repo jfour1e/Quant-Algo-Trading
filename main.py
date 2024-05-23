@@ -22,7 +22,7 @@ def place_order(order_type, amount):
     nonce = generate_nonce()
     signature = generate_signature(nonce, BITSTAMP_API_KEY, BITSTAMP_CLIENT_ID, BITSTAMP_SECRET_KEY)
     
-    url = 'https://www.bitstamp.net/api/v2/' + order_type
+    url = f'https://www.bitstamp.net/api/v2/{order_type}/'
     params = {
         'key': BITSTAMP_API_KEY,
         'signature': signature,
@@ -36,11 +36,11 @@ def place_order(order_type, amount):
 def webhook():
     data = json.loads(request.data)
     response = None
-    if 'Buy' in data['message']:
-        response = place_order('buy/market/btcusd/', 1)  # Modify amount as needed
-    elif 'Sell' in data['message']:
-        response = place_order('sell/market/btcusd/', 1)  # Modify amount as needed
+    if 'Buy' in data.get('message', ''):
+        response = place_order('buy/market/btcusd', 1)  # Modify amount as needed
+    elif 'Sell' in data.get('message', ''):
+        response = place_order('sell/market/btcusd', 1)  # Modify amount as needed
     return json.dumps(response), 200
 
 if __name__ == '__main__':
-    app.run(port=5000, host='0.0.0.0')
+    app.run(port=5001, host='0.0.0.0')
